@@ -33,10 +33,9 @@ export class ChatController {
       throw new Error('Unauthorized');
     }
     const chats = await this.chatService.getUserChats(userId);
-    // Format with otherPartyName
     return chats.map(chat => ({
       ...chat,
-      otherPartyName: chat.buyerId === userId ? chat.sellerName : chat.buyerName || 'Seller',
+      otherPartyName: chat.otherPartyName,
     }));
   }
 
