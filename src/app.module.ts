@@ -28,11 +28,15 @@ import { Report } from '@/entities/report.entity';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get('DATABASE_HOST', 'localhost'),
-        port: configService.get('DATABASE_PORT', 5432),
-        username: configService.get('DATABASE_USER', 'postgres'),
-        password: configService.get('DATABASE_PASSWORD', 'postgres'),
-        database: configService.get('DATABASE_NAME', 'unimarket'),
+        url: configService.get<string>('DATABASE_URL') || undefined,
+        host: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_HOST', 'localhost'),
+        port: configService.get<string>('DATABASE_URL') ? undefined : parseInt(configService.get('DATABASE_PORT', '5432'), 10),
+        username: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_USER', 'postgres'),
+        password: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_PASSWORD', 'postgres'),
+        database: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_NAME', 'unimarket'),
+        ssl: configService.get('DATABASE_SSL', 'false') === 'true'
+          ? { rejectUnauthorized: false }
+          : false,
         entities: [User, Product, Chat, Message, Rating, Report],
         synchronize: true,
         logging: false,
