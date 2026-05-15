@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '@/entities/product.entity';
 import { User } from '@/entities/user.entity';
+import { Rating } from '@/entities/rating.entity';
 import { CreateProductDto, UpdateProductDto } from '@/dto/product.dto';
 import { AiService } from './ai.service';
 
@@ -13,6 +14,8 @@ export class ProductService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Rating)
+    private readonly ratingRepository: Repository<Rating>,
     private readonly aiService: AiService,
   ) {}
 
@@ -28,7 +31,8 @@ export class ProductService {
       sellerId,
     });
 
-    return await this.productRepository.save(product);
+    const saved = await this.productRepository.save(product);
+    return this.formatProduct({ ...saved, seller, ratings: [] });
   }
 
   async findAll(page = 1, limit = 20, category?: string, condition?: string) {
@@ -49,9 +53,19 @@ export class ProductService {
       .take(limit);
 
     const [products, total] = await query.getManyAndCount();
+    const ratings = products.length
+      ? await this.ratingRepository.find({
+          where: products.map((product) => ({ productId: product.id })),
+        })
+      : [];
+    const ratingsByProductId = ratings.reduce<Record<string, Rating[]>>((acc, rating) => {
+      acc[rating.productId] = acc[rating.productId] ?? [];
+      acc[rating.productId].push(rating);
+      return acc;
+    }, {});
 
     return {
-      data: products.map(p => this.formatProduct(p)),
+      data: products.map((p) => this.formatProduct({ ...p, ratings: ratingsByProductId[p.id] ?? [] })),
       total,
       page,
       limit,
@@ -71,9 +85,19 @@ export class ProductService {
       .take(limit);
 
     const [products, total] = await query.getManyAndCount();
+    const ratings = products.length
+      ? await this.ratingRepository.find({
+          where: products.map((product) => ({ productId: product.id })),
+        })
+      : [];
+    const ratingsByProductId = ratings.reduce<Record<string, Rating[]>>((acc, rating) => {
+      acc[rating.productId] = acc[rating.productId] ?? [];
+      acc[rating.productId].push(rating);
+      return acc;
+    }, {});
 
     return {
-      data: products.map(p => this.formatProduct(p)),
+      data: products.map((p) => this.formatProduct({ ...p, ratings: ratingsByProductId[p.id] ?? [] })),
       total,
       page,
       limit,
@@ -106,7 +130,9 @@ export class ProductService {
     }
 
     Object.assign(product, updateProductDto);
-    return await this.productRepository.save(product);
+    const saved = await this.productRepository.save(product);
+    const seller = await this.userRepository.findOne({ where: { id: sellerId } });
+    return this.formatProduct({ ...saved, seller, ratings: [] });
   }
 
   async remove(id: string, sellerId: string) {
@@ -139,17 +165,37 @@ export class ProductService {
   }
 
   async getSellerProducts(sellerId: string) {
-    return await this.productRepository.find({
+    const products = await this.productRepository.find({
       where: { sellerId },
       relations: ['seller'],
       order: { createdAt: 'DESC' },
     });
+
+    const ratings = products.length
+      ? await this.ratingRepository.find({
+          where: products.map((product) => ({ productId: product.id })),
+        })
+      : [];
+    const ratingsByProductId = ratings.reduce<Record<string, Rating[]>>((acc, rating) => {
+      acc[rating.productId] = acc[rating.productId] ?? [];
+      acc[rating.productId].push(rating);
+      return acc;
+    }, {});
+
+    return products.map((p) => this.formatProduct({ ...p, ratings: ratingsByProductId[p.id] ?? [] }));
+  }
+
+  async analyzeImage(
+    imageData: string,
+    hints?: { productName?: string; category?: string; condition?: string },
+  ) {
+    return this.aiService.analyzeProductImage(imageData, hints);
   }
 
   private formatProduct(product: any) {
     const avgRating = product.ratings && product.ratings.length > 0
       ? product.ratings.reduce((sum, r) => sum + r.rating, 0) / product.ratings.length
-      : 0;
+      : product.seller?.totalRating || 0;
 
     return {
       id: product.id,

@@ -27,7 +27,7 @@ export class Product {
   @Column({ type: 'text' })
   conditionDetail: string;
 
-  @Column()
+  @Column({ type: 'text' })
   imageUrl: string;
 
   @Column({ default: true })

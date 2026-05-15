@@ -82,4 +82,17 @@ export class ProductController {
       body.price,
     );
   }
+
+  @Post('analyze-image')
+  @UseGuards(JwtAuthGuard)
+  async analyzeImage(
+    @Body()
+    body: { imageData: string; productName?: string; category?: string; condition?: string },
+  ) {
+    return await this.productService.analyzeImage(body.imageData, {
+      productName: body.productName,
+      category: body.category,
+      condition: body.condition,
+    });
+  }
 }
