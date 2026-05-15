@@ -22,6 +22,19 @@ export class AuthController {
   async getProfile(@Request() req) {
     return await this.userService.findOne(req.user.userId);
   }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Request() req,
+    @Body() body: { oldPassword: string; newPassword: string }
+  ) {
+    const { oldPassword, newPassword } = body;
+    if (!oldPassword || !newPassword) {
+      throw new Error('Old password and new password are required');
+    }
+    return await this.userService.changePassword(req.user.userId, oldPassword, newPassword);
+  }
 }
 
 @Controller('api/users')

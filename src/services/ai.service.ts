@@ -71,24 +71,37 @@ export class AiService {
 Return JSON only with keys: name, description, category, condition, conditionDetail.
 
 Rules:
-- Infer the product from the photo and optional hints.
-- Do not include price.
-- Write in Spanish.
-- description should be 2-3 natural sentences.
-- conditionDetail should be specific and useful for a buyer.
-- category must be one of: Libros, Tecnología, Muebles, Ropa, Otros.
-- condition must be one of: Nuevo, Poco usado, Usado.
-
-Hints:
-- productName: ${productName}
-- category: ${category}
-- condition: ${condition}
-- price: ${price}`;
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-        {
           method: 'POST',
+  private getFallbackAnalysis(
+    productName?: string,
+    category?: string,
+    condition?: string,
+  ): ProductAnalysis {
+    // If no name provided, try to infer from category
+    let safeName = productName?.trim() || '';
+    if (!safeName && category) {
+      const categoryNameMap: Record<string, string> = {
+        'Libros': 'Libro de Universidad',
+        'Tecnología': 'Dispositivo Tecnológico',
+        'Muebles': 'Mueble',
+        'Ropa': 'Prenda de Ropa',
+        'Otros': 'Producto',
+      };
+      safeName = categoryNameMap[category?.trim()] || 'Producto';
+    }
+    if (!safeName) safeName = 'Producto';
+    
+    const safeCategory = category?.trim() || 'Otros';
+    const safeCondition = condition?.trim() || 'Poco usado';
+
+    return {
+      name: safeName,
+      description: `${safeName} en ${safeCondition.toLowerCase()} estado, ideal para estudiantes de Uniandes y listo para usarse. Producto de calidad verificada.`,
+      category: safeCategory,
+      condition: safeCondition,
+      conditionDetail: `El artículo se encuentra en ${safeCondition.toLowerCase()} estado. Tiene un uso normal acorde a su categoría y está completamente funcional. Listo para entrega inmediata o reventa.`,
+    };
+  }
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [
