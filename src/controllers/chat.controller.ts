@@ -12,7 +12,7 @@ import { ChatService } from '@/services/chat.service';
 import { CreateChatDto, SendMessageDto } from '@/dto/chat.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
-@Controller('api/chats')
+@Controller('chats')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 

@@ -11,7 +11,7 @@ import { RatingService } from '@/services/rating.service';
 import { CreateRatingDto } from '@/dto/rating.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
-@Controller('api/ratings')
+@Controller('ratings')
 export class RatingController {
   constructor(private readonly ratingService: RatingService) {}
 

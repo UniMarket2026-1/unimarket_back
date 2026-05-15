@@ -14,7 +14,7 @@ import { ProductService } from '@/services/product.service';
 import { CreateProductDto, UpdateProductDto } from '@/dto/product.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
-@Controller('api/products')
+@Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 

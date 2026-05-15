@@ -13,7 +13,7 @@ import { CreateReportDto, ResolveReportDto } from '@/dto/report.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { AdminGuard } from '@/auth/admin.guard';
 
-@Controller('api/reports')
+@Controller('reports')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 

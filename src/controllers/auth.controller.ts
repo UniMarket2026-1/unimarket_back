@@ -3,7 +3,7 @@ import { UserService } from '@/services/user.service';
 import { CreateUserDto, LoginDto, UpdateUserDto } from '@/dto/user.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly userService: UserService) {}
 
@@ -37,7 +37,7 @@ export class AuthController {
   }
 }
 
-@Controller('api/users')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
