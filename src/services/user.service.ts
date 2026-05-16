@@ -14,6 +14,61 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private get isResendEnabled() {
+    return !!process.env.RESEND_API_KEY;
+  }
+
+  private get isUniandesDomain() {
+    return (email: string) => email.toLowerCase().endsWith('@uniandes.edu.co');
+  }
+
+  private generateVerificationCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  private async sendVerificationEmail(email: string, name: string, code: string) {
+    if (!this.isResendEnabled) {
+      console.warn(`[verification] Code for ${email}: ${code}`);
+      return;
+    }
+
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'UniMarket <onboarding@resend.dev>';
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [email],
+        subject: 'Tu código de verificación de UniMarket',
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
+            <h2 style="margin: 0 0 16px;">Hola, ${name}</h2>
+            <p>Tu código para verificar tu correo en UniMarket es:</p>
+            <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.2em; padding: 16px 20px; background: #f8fafc; border-radius: 12px; display: inline-block; margin: 12px 0;">${code}</div>
+            <p>Este código expira en 10 minutos.</p>
+            <p>Si tú no solicitaste este correo, ignóralo.</p>
+          </div>
+        `,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Failed to send verification email: ${text}`);
+    }
+  }
+
+  private async issueVerificationCode(user: User) {
+    const code = this.generateVerificationCode();
+    user.emailVerificationCodeHash = await bcrypt.hash(code, 10);
+    user.emailVerificationCodeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await this.userRepository.save(user);
+    await this.sendVerificationEmail(user.email, user.name, code);
+  }
+
   async register(createUserDto: CreateUserDto) {
     const { email, password, name, role = 'student' } = createUserDto;
 
@@ -33,6 +88,7 @@ export class UserService {
     });
 
     await this.userRepository.save(user);
+    await this.issueVerificationCode(user);
 
     return this.formatUser(user);
   }
@@ -162,12 +218,58 @@ export class UserService {
     return this.formatUser(user);
   }
 
+  async sendVerificationCode(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.emailVerified) {
+      return { message: 'Email already verified' };
+    }
+
+    await this.issueVerificationCode(user);
+    return { message: 'Verification code sent' };
+  }
+
+  async verifyEmailCode(userId: string, code: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.emailVerified) {
+      return this.formatUser(user);
+    }
+
+    if (!user.emailVerificationCodeHash || !user.emailVerificationCodeExpiresAt) {
+      throw new BadRequestException('Verification code not found. Request a new one.');
+    }
+
+    if (user.emailVerificationCodeExpiresAt.getTime() < Date.now()) {
+      throw new BadRequestException('Verification code expired. Request a new one.');
+    }
+
+    const valid = await bcrypt.compare(code.trim(), user.emailVerificationCodeHash);
+    if (!valid) {
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationCodeHash = null;
+    user.emailVerificationCodeExpiresAt = null;
+    await this.userRepository.save(user);
+
+    return this.formatUser(user);
+  }
+
   private formatUser(user: User) {
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       emailVerified: user.emailVerified,
+      uniandesVerified: this.isUniandesDomain(user.email),
       role: user.role,
       favorites: user.favorites || [],
       interests: user.interests || [],

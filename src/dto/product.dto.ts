@@ -80,8 +80,10 @@ export class ProductResponseDto {
   imageUrl: string;
   sellerId: string;
   sellerName: string;
+  sellerEmail: string;
   sellerRating: number;
   sellerVerified: boolean;
+  sellerUniandesVerified: boolean;
   active: boolean;
   meetingPoint: string;
   createdAt: Date;

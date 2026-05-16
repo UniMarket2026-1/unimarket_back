@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Param, UseGuards, Request, Put, Delete, Query } from '@nestjs/common';
 import { UserService } from '@/services/user.service';
-import { CreateUserDto, LoginDto, UpdateUserDto } from '@/dto/user.dto';
+import { CreateUserDto, LoginDto, UpdateUserDto, VerifyEmailCodeDto } from '@/dto/user.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
 @Controller('auth')
@@ -34,6 +34,18 @@ export class AuthController {
       throw new Error('Old password and new password are required');
     }
     return await this.userService.changePassword(req.user.userId, oldPassword, newPassword);
+  }
+
+  @Post('send-verification-code')
+  @UseGuards(JwtAuthGuard)
+  async sendVerificationCode(@Request() req) {
+    return await this.userService.sendVerificationCode(req.user.userId);
+  }
+
+  @Post('verify-email-code')
+  @UseGuards(JwtAuthGuard)
+  async verifyEmailCode(@Request() req, @Body() body: VerifyEmailCodeDto) {
+    return await this.userService.verifyEmailCode(req.user.userId, body.code);
   }
 }
 

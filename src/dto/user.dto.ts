@@ -38,11 +38,18 @@ export class UpdateUserDto {
   notificationsEnabled?: boolean;
 }
 
+export class VerifyEmailCodeDto {
+  @IsString()
+  @MinLength(4)
+  code: string;
+}
+
 export class UserResponseDto {
   id: string;
   name: string;
   email: string;
   emailVerified: boolean;
+  uniandesVerified: boolean;
   role: 'student' | 'admin';
   favorites: string[];
   interests: string[];

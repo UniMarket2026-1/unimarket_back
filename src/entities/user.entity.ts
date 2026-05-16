@@ -19,6 +19,12 @@ export class User {
   @Column({ default: false })
   emailVerified: boolean;
 
+  @Column({ nullable: true })
+  emailVerificationCodeHash: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  emailVerificationCodeExpiresAt: Date;
+
   @Column()
   password: string;
 
