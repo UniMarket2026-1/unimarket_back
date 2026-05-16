@@ -7,6 +7,7 @@ import { ProductModule } from '@/modules/product.module';
 import { ChatModule } from '@/modules/chat.module';
 import { RatingModule } from '@/modules/rating.module';
 import { ReportModule } from '@/modules/report.module';
+import { PurchaseRequestModule } from '@/modules/purchase-request.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SeedController } from '@/controllers/seed.controller';
@@ -17,6 +18,7 @@ import { Chat } from '@/entities/chat.entity';
 import { Message } from '@/entities/message.entity';
 import { Rating } from '@/entities/rating.entity';
 import { Report } from '@/entities/report.entity';
+import { PurchaseRequest } from '@/entities/purchase-request.entity';
 
 @Module({
   imports: [
@@ -37,18 +39,19 @@ import { Report } from '@/entities/report.entity';
         ssl: configService.get('DATABASE_SSL', 'false') === 'true'
           ? { rejectUnauthorized: false }
           : false,
-        entities: [User, Product, Chat, Message, Rating, Report],
+        entities: [User, Product, Chat, Message, Rating, Report, PurchaseRequest],
         synchronize: true,
         logging: false,
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Product, Chat, Message, Rating, Report]),
+    TypeOrmModule.forFeature([User, Product, Chat, Message, Rating, Report, PurchaseRequest]),
     AuthModule,
     ProductModule,
     ChatModule,
     RatingModule,
     ReportModule,
+    PurchaseRequestModule,
   ],
   controllers: [AppController, SeedController],
   providers: [AppService, SeedService],
