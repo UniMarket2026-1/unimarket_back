@@ -16,6 +16,10 @@ async function bootstrap() {
 
   const frontendOrigin = normalizeOrigin(process.env.FRONTEND_URL) || 'https://unimarketfront.vercel.app';
 
+  // Increase payload size limit for image uploads
+  app.use(require('express').json({ limit: '50mb' }));
+  app.use(require('express').urlencoded({ limit: '50mb', extended: true }));
+
   // Enable CORS with proper configuration
   app.enableCors({
     origin: process.env.NODE_ENV === 'production' ? [frontendOrigin] : true,

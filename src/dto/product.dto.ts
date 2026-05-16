@@ -12,6 +12,7 @@ export class CreateProductDto {
   description: string;
 
   @IsString()
+  @IsIn(['Libros', 'Tecnología', 'Muebles', 'Ropa', 'Electrónica', 'Deportes', 'Arte', 'Instrumentos Musicales', 'Cocina', 'Accesorios', 'Otros'])
   category: string;
 
   @IsString()
@@ -41,6 +42,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['Libros', 'Tecnología', 'Muebles', 'Ropa', 'Electrónica', 'Deportes', 'Arte', 'Instrumentos Musicales', 'Cocina', 'Accesorios', 'Otros'])
   category?: string;
 
   @IsOptional()

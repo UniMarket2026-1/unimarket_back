@@ -25,7 +25,7 @@ export class User {
   @Column({ type: 'simple-array', default: '' })
   favorites: string[];
 
-  @Column({ type: 'simple-array', default: 'Libros,Tecnología,Muebles,Ropa,Otros' })
+  @Column({ type: 'simple-array', default: 'Libros,Tecnología,Muebles,Ropa,Electrónica,Deportes,Arte,Instrumentos Musicales,Cocina,Accesorios,Otros' })
   interests: string[];
 
   @Column({ default: true })

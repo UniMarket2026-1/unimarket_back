@@ -158,7 +158,7 @@ Hints:
 
 Rules:
 - detectedItems must be an array of short strings.
-- suggestedCategory must be one of: Libros, Tecnología, Muebles, Ropa, Otros.
+- suggestedCategory must be one of: Libros, Tecnología, Muebles, Ropa, Electrónica, Deportes, Arte, Instrumentos Musicales, Cocina, Accesorios, Otros.
 - quality must be one of: poor, fair, good, excellent.
 - Focus on what a university marketplace seller should fill in for a listing.
 - Do not return price.
@@ -242,7 +242,7 @@ Rules:
 - Do not include price.
 - description should be 2-3 sentences.
 - conditionDetail should mention visible wear or state if it can be inferred.
-- category must be one of: Libros, Tecnología, Muebles, Ropa, Otros.
+- category must be one of: Libros, Tecnología, Muebles, Ropa, Electrónica, Deportes, Arte, Instrumentos Musicales, Cocina, Accesorios, Otros.
 - condition must be one of: Nuevo, Poco usado, Usado.
 - Write in Spanish.
 
