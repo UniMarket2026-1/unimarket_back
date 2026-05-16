@@ -8,6 +8,22 @@ type ProductAnalysis = {
   conditionDetail: string;
 };
 
+const ALLOWED_CATEGORIES = [
+  'Libros',
+  'Tecnología',
+  'Muebles',
+  'Ropa',
+  'Electrónica',
+  'Deportes',
+  'Arte',
+  'Instrumentos Musicales',
+  'Cocina',
+  'Accesorios',
+  'Otros',
+];
+
+const ALLOWED_CONDITIONS = ['Nuevo', 'Poco usado', 'Usado'];
+
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
@@ -25,8 +41,8 @@ export class AiService {
     condition?: string,
   ): ProductAnalysis {
     const safeName = productName?.trim() || 'Producto';
-    const safeCategory = category?.trim() || 'Otros';
-    const safeCondition = condition?.trim() || 'Poco usado';
+    const safeCategory = this.normalizeCategory(category, 'Otros');
+    const safeCondition = this.normalizeCondition(condition, 'Poco usado');
 
     return {
       name: safeName,
@@ -37,15 +53,88 @@ export class AiService {
     };
   }
 
+  private normalizeCategory(value: unknown, fallback = 'Otros') {
+    if (typeof value !== 'string') return fallback;
+
+    const direct = ALLOWED_CATEGORIES.find((cat) => cat.toLowerCase() === value.toLowerCase());
+    if (direct) return direct;
+
+    const normalized = value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    if (normalized.includes('electronic')) return 'Electrónica';
+    if (normalized.includes('tecnolog')) return 'Tecnología';
+    if (normalized.includes('deport')) return 'Deportes';
+    if (normalized.includes('instrument')) return 'Instrumentos Musicales';
+    if (normalized.includes('cocin')) return 'Cocina';
+    if (normalized.includes('accesor')) return 'Accesorios';
+    if (normalized.includes('libro')) return 'Libros';
+    if (normalized.includes('mueble')) return 'Muebles';
+    if (normalized.includes('ropa')) return 'Ropa';
+    if (normalized.includes('arte')) return 'Arte';
+
+    return fallback;
+  }
+
+  private normalizeCondition(value: unknown, fallback = 'Poco usado') {
+    if (typeof value !== 'string') return fallback;
+    const direct = ALLOWED_CONDITIONS.find((cond) => cond.toLowerCase() === value.toLowerCase());
+    if (direct) return direct;
+
+    const normalized = value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    if (normalized.includes('nuevo') || normalized.includes('new')) return 'Nuevo';
+    if (normalized.includes('usado') || normalized.includes('used')) return 'Usado';
+    if (normalized.includes('poco') || normalized.includes('semi')) return 'Poco usado';
+    return fallback;
+  }
+
+  private normalizeAnalysis(parsed: any, hints?: { productName?: string; category?: string; condition?: string }): ProductAnalysis {
+    const fallback = this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition);
+
+    return {
+      name: (parsed?.name || '').toString().trim() || fallback.name,
+      description: (parsed?.description || '').toString().trim() || fallback.description,
+      category: this.normalizeCategory(parsed?.category, fallback.category),
+      condition: this.normalizeCondition(parsed?.condition, fallback.condition),
+      conditionDetail: (parsed?.conditionDetail || '').toString().trim() || fallback.conditionDetail,
+    };
+  }
+
   private extractJson(text: string) {
+    if (!text) return null;
+
+    const tryParse = (candidate: string) => {
+      try {
+        return JSON.parse(candidate);
+      } catch {
+        return null;
+      }
+    };
+
+    const direct = tryParse(text.trim());
+    if (direct) return direct;
+
+    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    if (fenced?.[1]) {
+      const parsed = tryParse(fenced[1].trim());
+      if (parsed) return parsed;
+    }
+
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) return null;
 
-    try {
-      return JSON.parse(match[0]);
-    } catch {
-      return null;
-    }
+    const objectBlock = match[0];
+    const strict = tryParse(objectBlock);
+    if (strict) return strict;
+
+    const withQuotedKeys = objectBlock.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)/g, '$1"$2"$3');
+    return tryParse(withQuotedKeys);
   }
 
   async generateProductDescription(
@@ -203,8 +292,10 @@ Rules:
       if (parsed) {
         return {
           detectedItems: Array.isArray(parsed.detectedItems) ? parsed.detectedItems : [],
-          suggestedCategory: parsed.suggestedCategory || 'Otros',
-          quality: parsed.quality || 'good',
+          suggestedCategory: this.normalizeCategory(parsed.suggestedCategory, 'Otros'),
+          quality: ['poor', 'fair', 'good', 'excellent'].includes(parsed.quality)
+            ? parsed.quality
+            : 'good',
         };
       }
 
@@ -238,13 +329,14 @@ Rules:
 Return JSON only with keys: name, description, category, condition, conditionDetail.
 
 Rules:
-- Infer the item from the image.
-- Do not include price.
-- description should be 2-3 sentences.
-- conditionDetail should mention visible wear or state if it can be inferred.
+    - Infer the concrete item from the image; avoid generic names like "Producto" unless the image is unusable.
+    - Do not include price.
+    - description should be 2-3 sentences and mention useful details (material, size, usage context, included parts) when visible.
+    - conditionDetail should mention visible wear, missing parts, and cosmetic state if inferable.
 - category must be one of: Libros, Tecnología, Muebles, Ropa, Electrónica, Deportes, Arte, Instrumentos Musicales, Cocina, Accesorios, Otros.
 - condition must be one of: Nuevo, Poco usado, Usado.
 - Write in Spanish.
+    - If confidence is low, still return the most likely category and keep the text honest (e.g., "no se observan daños evidentes").
 
 Hints:
 - productName: ${hints?.productName || ''}
@@ -288,13 +380,7 @@ Hints:
       const parsed = this.extractJson(text);
 
       if (parsed) {
-        return {
-          name: parsed.name || hints?.productName || 'Producto',
-          description: parsed.description || this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition).description,
-          category: parsed.category || hints?.category || 'Otros',
-          condition: parsed.condition || hints?.condition || 'Poco usado',
-          conditionDetail: parsed.conditionDetail || this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition).conditionDetail,
-        };
+        return this.normalizeAnalysis(parsed, hints);
       }
 
       return this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition);

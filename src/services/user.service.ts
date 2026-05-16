@@ -29,6 +29,7 @@ export class UserService {
       email,
       password: hashedPassword,
       role,
+      emailVerified: false,
     });
 
     await this.userRepository.save(user);
@@ -166,6 +167,7 @@ export class UserService {
       id: user.id,
       name: user.name,
       email: user.email,
+      emailVerified: user.emailVerified,
       role: user.role,
       favorites: user.favorites || [],
       interests: user.interests || [],

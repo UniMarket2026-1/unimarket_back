@@ -30,6 +30,9 @@ export class Product {
   @Column({ type: 'text' })
   imageUrl: string;
 
+  @Column({ type: 'text', default: '' })
+  meetingPoint: string;
+
   @Column({ default: true })
   active: boolean;
 

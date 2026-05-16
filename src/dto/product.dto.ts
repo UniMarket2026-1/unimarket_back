@@ -24,6 +24,9 @@ export class CreateProductDto {
 
   @IsString()
   imageUrl: string;
+
+  @IsString()
+  meetingPoint: string;
 }
 
 export class UpdateProductDto {
@@ -59,6 +62,10 @@ export class UpdateProductDto {
   imageUrl?: string;
 
   @IsOptional()
+  @IsString()
+  meetingPoint?: string;
+
+  @IsOptional()
   active?: boolean;
 }
 
@@ -74,6 +81,8 @@ export class ProductResponseDto {
   sellerId: string;
   sellerName: string;
   sellerRating: number;
+  sellerVerified: boolean;
   active: boolean;
+  meetingPoint: string;
   createdAt: Date;
 }

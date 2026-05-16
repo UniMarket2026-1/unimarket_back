@@ -42,6 +42,7 @@ export class UserResponseDto {
   id: string;
   name: string;
   email: string;
+  emailVerified: boolean;
   role: 'student' | 'admin';
   favorites: string[];
   interests: string[];

@@ -209,7 +209,9 @@ export class ProductService {
       sellerId: product.sellerId,
       sellerName: product.seller?.name || 'Unknown',
       sellerRating: Math.round(avgRating * 10) / 10,
+      sellerVerified: !!product.seller?.emailVerified,
       active: product.active,
+      meetingPoint: product.meetingPoint,
       createdAt: product.createdAt,
     };
   }
