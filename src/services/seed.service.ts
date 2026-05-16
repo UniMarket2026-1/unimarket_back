@@ -80,6 +80,8 @@ export class SeedService {
         conditionDetail: 'Usado durante un semestre. Está forrado en plástico protector. Sin páginas rotas ni manchas. Pequeñas anotaciones en lápiz.',
         imageUrl: 'https://images.unsplash.com/photo-1741795822013-570c944ac5bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080',
         sellerId: savedUsers[0].id,
+        latitude: 4.6026 + (Math.random() - 0.5) * 0.05,
+        longitude: -74.0655 + (Math.random() - 0.5) * 0.05,
       },
       {
         name: 'Calculadora Científica Casio FX-991LAX',
@@ -90,6 +92,8 @@ export class SeedService {
         conditionDetail: 'Nueva en caja sellada. Nunca se ha abierto. Incluye garantía del fabricante.',
         imageUrl: 'https://images.unsplash.com/photo-1761821170104-ccd3e3e21318?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080',
         sellerId: savedUsers[1].id,
+        latitude: 4.6026 + (Math.random() - 0.5) * 0.05,
+        longitude: -74.0655 + (Math.random() - 0.5) * 0.05,
       },
       {
         name: 'Lámpara LED de Escritorio',
@@ -100,6 +104,8 @@ export class SeedService {
         conditionDetail: 'Tiene algunos rayones cosméticos pero funciona perfectamente. Todos los botones funcionan correctamente.',
         imageUrl: 'https://images.unsplash.com/photo-1570570665905-346e1b6be193?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080',
         sellerId: savedUsers[2].id,
+        latitude: 4.6026 + (Math.random() - 0.5) * 0.05,
+        longitude: -74.0655 + (Math.random() - 0.5) * 0.05,
       },
       {
         name: 'Mochilas Ergonómica para Laptop',
@@ -110,6 +116,8 @@ export class SeedService {
         conditionDetail: 'Usado por un semestre solamente. En excelente condición. Sin roturas ni costuras sueltas.',
         imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080',
         sellerId: savedUsers[3].id,
+        latitude: 4.6026 + (Math.random() - 0.5) * 0.05,
+        longitude: -74.0655 + (Math.random() - 0.5) * 0.05,
       },
       {
         name: 'Monitor Samsung LU28E590DS 28"',
@@ -120,6 +128,8 @@ export class SeedService {
         conditionDetail: 'Comprado hace un año. Funciona perfectamente sin rayones en la pantalla. Incluye todos los cables.',
         imageUrl: 'https://images.unsplash.com/photo-1521298770-1aa500764cbd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080',
         sellerId: savedUsers[4].id,
+        latitude: 4.6026 + (Math.random() - 0.5) * 0.05,
+        longitude: -74.0655 + (Math.random() - 0.5) * 0.05,
       },
       {
         name: 'Escritorio Ajustable en Altura',
@@ -130,6 +140,8 @@ export class SeedService {
         conditionDetail: 'Nunca ha sido usado. Viene en caja. Incluye garantía del fabricante por 2 años.',
         imageUrl: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080',
         sellerId: savedUsers[5].id,
+        latitude: 4.6026 + (Math.random() - 0.5) * 0.05,
+        longitude: -74.0655 + (Math.random() - 0.5) * 0.05,
       },
       {
         name: 'Apuntes de Programación en Python',
@@ -140,6 +152,8 @@ export class SeedService {
         conditionDetail: 'Apuntes manuscritos en cuaderno tamaño carta. Letra clara y organizada. Sin hojas sueltas.',
         imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080',
         sellerId: savedUsers[6].id,
+        latitude: 4.6026 + (Math.random() - 0.5) * 0.05,
+        longitude: -74.0655 + (Math.random() - 0.5) * 0.05,
       },
       {
         name: 'Teclado Mecánico RGB',

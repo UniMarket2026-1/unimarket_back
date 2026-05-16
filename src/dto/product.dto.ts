@@ -27,6 +27,14 @@ export class CreateProductDto {
 
   @IsString()
   meetingPoint: string;
+
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 }
 
 export class UpdateProductDto {
@@ -64,6 +72,14 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   meetingPoint?: string;
+
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 
   @IsOptional()
   active?: boolean;
