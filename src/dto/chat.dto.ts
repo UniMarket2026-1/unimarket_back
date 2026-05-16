@@ -1,6 +1,13 @@
+import { IsString } from 'class-validator';
+
 export class CreateChatDto {
+  @IsString()
   productId: string;
+
+  @IsString()
   buyerId: string;
+
+  @IsString()
   sellerId: string;
 }
 
@@ -16,6 +23,7 @@ export class ChatResponseDto {
 }
 
 export class SendMessageDto {
+  @IsString()
   text: string;
 }
 
