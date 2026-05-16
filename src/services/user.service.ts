@@ -14,21 +14,20 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
-  private get isResendEnabled() {
+  private get isResendEnabled(): boolean {
     return !!process.env.RESEND_API_KEY;
   }
 
-  private get isUniandesDomain() {
-    return (email: string) => email.toLowerCase().endsWith('@uniandes.edu.co');
+  private isUniandesDomain(email: string): boolean {
+    return email.toLowerCase().endsWith('@uniandes.edu.co');
   }
 
-  private generateVerificationCode() {
+  private generateVerificationCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  private async sendVerificationEmail(email: string, name: string, code: string) {
+  private async sendEmail(to: string, subject: string, html: string) {
     if (!this.isResendEnabled) {
-      console.warn(`[verification] Code for ${email}: ${code}`);
       return;
     }
 
@@ -41,24 +40,43 @@ export class UserService {
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [email],
-        subject: 'Tu código de verificación de UniMarket',
-        html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
-            <h2 style="margin: 0 0 16px;">Hola, ${name}</h2>
-            <p>Tu código para verificar tu correo en UniMarket es:</p>
-            <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.2em; padding: 16px 20px; background: #f8fafc; border-radius: 12px; display: inline-block; margin: 12px 0;">${code}</div>
-            <p>Este código expira en 10 minutos.</p>
-            <p>Si tú no solicitaste este correo, ignóralo.</p>
-          </div>
-        `,
+        to: [to],
+        subject,
+        html,
       }),
     });
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Failed to send verification email: ${text}`);
+      throw new Error(`Failed to send email: ${text}`);
     }
+  }
+
+  private async sendVerificationEmail(email: string, name: string, code: string) {
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
+        <h2 style="margin: 0 0 16px;">Hola, ${name}</h2>
+        <p>Tu código para verificar tu correo en UniMarket es:</p>
+        <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.2em; padding: 16px 20px; background: #f8fafc; border-radius: 12px; display: inline-block; margin: 12px 0;">${code}</div>
+        <p>Este código expira en 10 minutos.</p>
+      </div>
+    `;
+
+    await this.sendEmail(email, 'Tu código de verificación de UniMarket', html);
+  }
+
+  private async sendPasswordResetEmail(email: string, name: string, code: string) {
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #0f172a;">
+        <h2 style="margin: 0 0 16px;">Hola, ${name}</h2>
+        <p>Recibimos una solicitud para recuperar tu contraseña.</p>
+        <p>Tu código para restablecerla es:</p>
+        <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.2em; padding: 16px 20px; background: #f8fafc; border-radius: 12px; display: inline-block; margin: 12px 0;">${code}</div>
+        <p>Este código expira en 15 minutos.</p>
+      </div>
+    `;
+
+    await this.sendEmail(email, 'Recupera tu contraseña en UniMarket', html);
   }
 
   private async issueVerificationCode(user: User) {
@@ -66,7 +84,31 @@ export class UserService {
     user.emailVerificationCodeHash = await bcrypt.hash(code, 10);
     user.emailVerificationCodeExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await this.userRepository.save(user);
-    await this.sendVerificationEmail(user.email, user.name, code);
+
+    if (this.isResendEnabled) {
+      await this.sendVerificationEmail(user.email, user.name, code);
+    } else {
+      console.warn(`[verification] Code for ${user.email}: ${code}`);
+    }
+  }
+
+  private formatUser(user: User) {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      uniandesVerified: this.isUniandesDomain(user.email),
+      role: user.role,
+      favorites: user.favorites || [],
+      interests: user.interests || [],
+      notificationsEnabled: user.notificationsEnabled,
+      totalRating: user.totalRating,
+      ratingCount: user.ratingCount,
+      suspended: user.suspended,
+      warnings: user.warnings,
+      createdAt: user.createdAt,
+    };
   }
 
   async register(createUserDto: CreateUserDto) {
@@ -78,7 +120,6 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = this.userRepository.create({
       name,
       email,
@@ -89,14 +130,13 @@ export class UserService {
 
     await this.userRepository.save(user);
     await this.issueVerificationCode(user);
-
     return this.formatUser(user);
   }
 
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
-
     const user = await this.userRepository.findOne({ where: { email } });
+
     if (!user) {
       throw new BadRequestException('Invalid credentials');
     }
@@ -134,7 +174,6 @@ export class UserService {
 
     Object.assign(user, updateUserDto);
     await this.userRepository.save(user);
-
     return this.formatUser(user);
   }
 
@@ -144,11 +183,9 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    if (!user.favorites) {
-      user.favorites = [];
-    }
-
+    user.favorites = user.favorites || [];
     const index = user.favorites.indexOf(productId);
+
     if (index > -1) {
       user.favorites.splice(index, 1);
     } else {
@@ -176,7 +213,6 @@ export class UserService {
     user.suspended = true;
     user.suspensionReason = reason;
     await this.userRepository.save(user);
-
     return this.formatUser(user);
   }
 
@@ -211,10 +247,8 @@ export class UserService {
       throw new BadRequestException('New password must be different from old password');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 10);
     await this.userRepository.save(user);
-
     return this.formatUser(user);
   }
 
@@ -259,26 +293,57 @@ export class UserService {
     user.emailVerificationCodeHash = null;
     user.emailVerificationCodeExpiresAt = null;
     await this.userRepository.save(user);
-
     return this.formatUser(user);
   }
 
-  private formatUser(user: User) {
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      emailVerified: user.emailVerified,
-      uniandesVerified: this.isUniandesDomain(user.email),
-      role: user.role,
-      favorites: user.favorites || [],
-      interests: user.interests || [],
-      notificationsEnabled: user.notificationsEnabled,
-      totalRating: user.totalRating,
-      ratingCount: user.ratingCount,
-      suspended: user.suspended,
-      warnings: user.warnings,
-      createdAt: user.createdAt,
-    };
+  async requestPasswordReset(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const code = this.generateVerificationCode();
+    user.passwordResetCodeHash = await bcrypt.hash(code, 10);
+    user.passwordResetCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await this.userRepository.save(user);
+
+    if (this.isResendEnabled) {
+      await this.sendPasswordResetEmail(user.email, user.name, code);
+    } else {
+      console.warn(`[password-reset] Code for ${email}: ${code}`);
+    }
+
+    return { message: 'Password reset code sent to email' };
+  }
+
+  async resetPassword(code: string, newPassword: string) {
+    if (newPassword.length < 6) {
+      throw new BadRequestException('Password must be at least 6 characters long');
+    }
+
+    const users = await this.userRepository.find();
+    let user: User | null = null;
+
+    for (const currentUser of users) {
+      if (currentUser.passwordResetCodeHash && await bcrypt.compare(code.trim(), currentUser.passwordResetCodeHash)) {
+        user = currentUser;
+        break;
+      }
+    }
+
+    if (!user) {
+      throw new BadRequestException('Invalid reset code');
+    }
+
+    if (!user.passwordResetCodeExpiresAt || user.passwordResetCodeExpiresAt.getTime() < Date.now()) {
+      throw new BadRequestException('Reset code expired');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordResetCodeHash = null;
+    user.passwordResetCodeExpiresAt = null;
+    await this.userRepository.save(user);
+
+    return { message: 'Password reset successfully' };
   }
 }
