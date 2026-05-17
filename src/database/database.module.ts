@@ -3,9 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-    // In development use SQLite to avoid requiring Postgres locally; in production use Postgres.
+    // Default to SQLite for local development. Set USE_POSTGRES=1 to force Postgres.
     TypeOrmModule.forRoot(
-      process.env.NODE_ENV === 'production'
+      process.env.USE_POSTGRES === '1'
         ? {
             type: 'postgres',
             host: process.env.DATABASE_HOST || 'localhost',
