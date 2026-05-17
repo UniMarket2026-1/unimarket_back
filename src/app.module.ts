@@ -29,17 +29,23 @@ import { PurchaseRequest } from '@/entities/purchase-request.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const usePostgres = process.env.USE_POSTGRES === '1' || configService.get('NODE_ENV') === 'production';
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        const usePostgres =
+          process.env.USE_POSTGRES === '1' ||
+          !!databaseUrl ||
+          configService.get('NODE_ENV') === 'production';
         if (usePostgres) {
           return {
             type: 'postgres',
-            url: configService.get<string>('DATABASE_URL') || undefined,
-            host: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_HOST', 'localhost'),
-            port: configService.get<string>('DATABASE_URL') ? undefined : parseInt(configService.get('DATABASE_PORT', '5432'), 10),
-            username: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_USER', 'postgres'),
-            password: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_PASSWORD', 'postgres'),
-            database: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_NAME', 'unimarket'),
-            ssl: configService.get('DATABASE_SSL', 'false') === 'true'
+            url: databaseUrl || undefined,
+            host: databaseUrl ? undefined : configService.get('DATABASE_HOST', 'localhost'),
+            port: databaseUrl ? undefined : parseInt(configService.get('DATABASE_PORT', '5432'), 10),
+            username: databaseUrl ? undefined : configService.get('DATABASE_USER', 'postgres'),
+            password: databaseUrl ? undefined : configService.get('DATABASE_PASSWORD', 'postgres'),
+            database: databaseUrl ? undefined : configService.get('DATABASE_NAME', 'unimarket'),
+            ssl:
+              configService.get('DATABASE_SSL', 'false') === 'true' ||
+              (databaseUrl && configService.get('NODE_ENV') === 'production')
               ? { rejectUnauthorized: false }
               : false,
             entities: [User, Product, Chat, Message, Rating, Report, PurchaseRequest],

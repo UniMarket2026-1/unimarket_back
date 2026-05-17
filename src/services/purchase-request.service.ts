@@ -237,7 +237,11 @@ export class PurchaseRequestService {
       }
     }
 
-    await this.sendCodeEmails(request, code);
+    try {
+      await this.sendCodeEmails(request, code);
+    } catch (error) {
+      console.error('[purchase-request] Failed to send approval code emails:', error instanceof Error ? error.message : error);
+    }
     return this.normalizeRequest(request);
   }
 
