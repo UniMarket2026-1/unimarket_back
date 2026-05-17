@@ -3,10 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
-    // Use Postgres when DATABASE_HOST is provided; otherwise fallback to SQLite for local dev.
+    // Use SQLite when USE_SQLITE=1, otherwise use Postgres when DATABASE_HOST is provided; fallback to SQLite.
     TypeOrmModule.forRoot(
-      process.env.DATABASE_HOST
+      process.env.USE_SQLITE === '1' || !process.env.DATABASE_HOST
         ? {
+            type: 'sqlite',
+            database: process.env.SQLITE_DB_PATH || 'dev.sqlite',
+            entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+            synchronize: true,
+            logging: false,
+          }
+        : {
             type: 'postgres',
             host: process.env.DATABASE_HOST || 'localhost',
             port: parseInt(process.env.DATABASE_PORT) || 5432,
@@ -17,13 +24,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
             synchronize: true,
             logging: false,
             dropSchema: false,
-          }
-        : {
-            type: 'sqlite',
-            database: process.env.SQLITE_DB_PATH || 'dev.sqlite',
-            entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-            synchronize: true,
-            logging: false,
           },
     ),
   ],
