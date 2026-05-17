@@ -31,6 +31,6 @@ export class Rating {
   @Column({ type: 'text' })
   comment: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 }

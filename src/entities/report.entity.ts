@@ -10,7 +10,7 @@ export class Report {
   @Column()
   itemId: string; // product ID or user ID
 
-  @Column({ type: 'enum', enum: ['product', 'user'] })
+  @Column({ type: 'text' })
   itemType: 'product' | 'user';
 
   @ManyToOne(() => User, (user) => user.reportsCreated, { onDelete: 'CASCADE' })
@@ -22,28 +22,28 @@ export class Report {
   @Column()
   reason: string;
 
-  @Column({ type: 'enum', enum: ['spam', 'inappropriate', 'fraud', 'other'] })
+  @Column({ type: 'text' })
   category: 'spam' | 'inappropriate' | 'fraud' | 'other';
 
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ type: 'enum', enum: ['pending', 'resolved', 'dismissed'], default: 'pending' })
+  @Column({ type: 'text', default: 'pending' })
   status: 'pending' | 'resolved' | 'dismissed';
 
-  @Column({ type: 'enum', enum: ['warning', 'suspension', 'removal', 'dismissed'], nullable: true })
+  @Column({ type: 'text', nullable: true })
   resolution: 'warning' | 'suspension' | 'removal' | 'dismissed' | null;
 
   @Column({ nullable: true })
   resolvedBy: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   resolvedAt: Date;
 
   @Column({ type: 'text', nullable: true })
   notes: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 
   @ManyToOne(() => Product, (product) => product.reports, { nullable: true, onDelete: 'CASCADE' })

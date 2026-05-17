@@ -27,34 +27,30 @@ export class PurchaseRequest {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   seller: User;
 
-  @Column({
-    type: 'enum',
-    enum: ['pending', 'approved', 'rejected', 'cancelled', 'completed'],
-    default: 'pending',
-  })
+  @Column({ type: 'text', default: 'pending' })
   status: PurchaseRequestStatus;
 
   @Column({ nullable: true })
   accessCodeHash: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   accessCodeExpiresAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   approvedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   buyerConfirmedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   sellerConfirmedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   completedAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }

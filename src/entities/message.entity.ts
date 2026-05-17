@@ -22,6 +22,6 @@ export class Message {
   @Column({ type: 'text' })
   text: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   timestamp: Date;
 }

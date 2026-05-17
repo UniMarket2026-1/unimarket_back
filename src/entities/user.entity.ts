@@ -22,19 +22,19 @@ export class User {
   @Column({ nullable: true })
   emailVerificationCodeHash: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   emailVerificationCodeExpiresAt: Date;
 
   @Column({ nullable: true })
   passwordResetCodeHash: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   passwordResetCodeExpiresAt: Date;
 
   @Column()
   password: string;
 
-  @Column({ type: 'enum', enum: ['student', 'admin'], default: 'student' })
+  @Column({ type: 'text', default: 'student' })
   role: 'student' | 'admin';
 
   @Column({ type: 'simple-array', default: '' })
@@ -61,7 +61,7 @@ export class User {
   @Column({ default: 0 })
   warnings: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
   @OneToMany(() => Product, (product) => product.seller)

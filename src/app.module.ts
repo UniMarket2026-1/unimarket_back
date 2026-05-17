@@ -28,21 +28,34 @@ import { PurchaseRequest } from '@/entities/purchase-request.entity';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get<string>('DATABASE_URL') || undefined,
-        host: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_HOST', 'localhost'),
-        port: configService.get<string>('DATABASE_URL') ? undefined : parseInt(configService.get('DATABASE_PORT', '5432'), 10),
-        username: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_USER', 'postgres'),
-        password: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_PASSWORD', 'postgres'),
-        database: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_NAME', 'unimarket'),
-        ssl: configService.get('DATABASE_SSL', 'false') === 'true'
-          ? { rejectUnauthorized: false }
-          : false,
-        entities: [User, Product, Chat, Message, Rating, Report, PurchaseRequest],
-        synchronize: true,
-        logging: false,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const usePostgres = process.env.USE_POSTGRES === '1' || configService.get('NODE_ENV') === 'production';
+        if (usePostgres) {
+          return {
+            type: 'postgres',
+            url: configService.get<string>('DATABASE_URL') || undefined,
+            host: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_HOST', 'localhost'),
+            port: configService.get<string>('DATABASE_URL') ? undefined : parseInt(configService.get('DATABASE_PORT', '5432'), 10),
+            username: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_USER', 'postgres'),
+            password: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_PASSWORD', 'postgres'),
+            database: configService.get<string>('DATABASE_URL') ? undefined : configService.get('DATABASE_NAME', 'unimarket'),
+            ssl: configService.get('DATABASE_SSL', 'false') === 'true'
+              ? { rejectUnauthorized: false }
+              : false,
+            entities: [User, Product, Chat, Message, Rating, Report, PurchaseRequest],
+            synchronize: true,
+            logging: false,
+          };
+        }
+
+        return {
+          type: 'sqlite',
+          database: configService.get('SQLITE_DB_PATH', 'dev.sqlite'),
+          entities: [User, Product, Chat, Message, Rating, Report, PurchaseRequest],
+          synchronize: true,
+          logging: false,
+        };
+      },
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User, Product, Chat, Message, Rating, Report, PurchaseRequest]),

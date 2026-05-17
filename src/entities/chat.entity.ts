@@ -29,12 +29,12 @@ export class Chat {
   @Column({ default: '' })
   lastMessage: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   lastMessageAt: Date;
 
   @OneToMany(() => Message, (message) => message.chat, { cascade: true })
   messages: Message[];
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }
