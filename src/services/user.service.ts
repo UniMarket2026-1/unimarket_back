@@ -86,7 +86,15 @@ export class UserService {
     await this.userRepository.save(user);
 
     if (this.isResendEnabled) {
-      await this.sendVerificationEmail(user.email, user.name, code);
+      try {
+        await this.sendVerificationEmail(user.email, user.name, code);
+      } catch (err) {
+        // Log the error but do NOT block user registration when email provider fails
+        // This prevents 500 errors during register if the email service rejects the request
+        // (e.g., Resend account not configured for sending to arbitrary recipients).
+        // eslint-disable-next-line no-console
+        console.error('[verification] Failed to send verification email:', err instanceof Error ? err.message : err);
+      }
     } else {
       console.warn(`[verification] Code for ${user.email}: ${code}`);
     }
@@ -159,8 +167,13 @@ export class UserService {
   }
 
   async findOne(id: string) {
+    // add debug logging to help diagnose 404s in production
+    // eslint-disable-next-line no-console
+    console.debug(`[users] findOne id=${id}`);
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
+      // eslint-disable-next-line no-console
+      console.warn(`[users] user not found id=${id}`);
       throw new NotFoundException('User not found');
     }
     return this.formatUser(user);
