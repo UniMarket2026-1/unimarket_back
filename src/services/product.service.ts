@@ -211,7 +211,10 @@ export class ProductService {
       sellerEmail: product.seller?.email || '',
       sellerRating: Math.round(avgRating * 10) / 10,
       sellerVerified: !!product.seller?.emailVerified,
-      sellerUniandesVerified: !!product.seller?.email?.toLowerCase().endsWith('@uniandes.edu.co'),
+      sellerUniandesVerified:
+        !!product.seller?.emailVerified && !!product.seller?.email?.toLowerCase().endsWith('@uniandes.edu.co'),
+      latitude: product.latitude,
+      longitude: product.longitude,
       active: product.active,
       meetingPoint: product.meetingPoint,
       createdAt: product.createdAt,

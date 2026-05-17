@@ -98,7 +98,7 @@ export class UserService {
       name: user.name,
       email: user.email,
       emailVerified: user.emailVerified,
-      uniandesVerified: this.isUniandesDomain(user.email),
+      uniandesVerified: !!user.emailVerified && this.isUniandesDomain(user.email),
       role: user.role,
       favorites: user.favorites || [],
       interests: user.interests || [],
