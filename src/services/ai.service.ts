@@ -184,7 +184,6 @@ Hints:
             ],
             generationConfig: {
               temperature: 0.7,
-              responseMimeType: 'application/json',
             },
           }),
         },
@@ -276,7 +275,6 @@ Rules:
             ],
             generationConfig: {
               temperature: 0.2,
-              responseMimeType: 'application/json',
             },
           }),
         },
@@ -366,7 +364,6 @@ Hints:
             ],
             generationConfig: {
               temperature: 0.5,
-              responseMimeType: 'application/json',
             },
           }),
         },
