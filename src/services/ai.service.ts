@@ -440,15 +440,16 @@ Hints:
 
       // prefer explicit vision-capable models when asked
       if (kind === 'vision') {
-        const vision = models.find((m) => /vision|image|img|flash/i.test(m));
-        if (vision) return vision;
+        // Prefer Gemini 3 Flash or other flash/vision-capable models
+        const preferred = models.find((m) => /gemini-3(-flash)?|gemini3|flash|vision|image|img/i.test(m));
+        if (preferred) return preferred;
         // fallback to any gemini model
         const gem = models.find((m) => /gemini/i.test(m));
         if (gem) return gem;
       }
 
       // text preference
-      const preferredText = models.find((m) => /gemini(-pro|-1\.5|1\.5|-1\.|-text)?/i.test(m));
+      const preferredText = models.find((m) => /gemini-3(-flash)?|gemini3|gemini(-pro|-1\.5|1\.5|-1\.|-text)?/i.test(m));
       if (preferredText) return preferredText;
 
       return models[0] || null;
