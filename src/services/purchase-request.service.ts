@@ -144,6 +144,9 @@ export class PurchaseRequestService {
       }
 
       await this.sendCompletionEmails(request);
+    } catch (err) {
+      console.error('[purchase-request] Failed to send completion emails:', err instanceof Error ? err.message : err);
+      // Do not propagate email errors to the API response — purchase was completed.
     }
   }
 
