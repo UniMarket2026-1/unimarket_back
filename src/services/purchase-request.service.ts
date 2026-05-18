@@ -143,11 +143,12 @@ export class PurchaseRequestService {
         await this.productRepository.save(product);
       }
 
-      await this.sendCompletionEmails(request);
-    } catch (err) {
-      console.error('[purchase-request] Failed to send completion emails:', err instanceof Error ? err.message : err);
-      // Do not propagate email errors to the API response — purchase was completed.
-    }
+      try {
+        await this.sendCompletionEmails(request);
+      } catch (err) {
+        console.error('[purchase-request] Failed to send completion emails:', err instanceof Error ? err.message : err);
+        // Do not propagate email errors to the API response — purchase was completed.
+      }
   }
 
   async createRequest(productId: string, buyerId: string) {
