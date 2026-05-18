@@ -149,6 +149,7 @@ export class PurchaseRequestService {
         console.error('[purchase-request] Failed to send completion emails:', err instanceof Error ? err.message : err);
         // Do not propagate email errors to the API response — purchase was completed.
       }
+    }
   }
 
   async createRequest(productId: string, buyerId: string) {
