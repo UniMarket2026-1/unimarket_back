@@ -11,6 +11,7 @@ import { PurchaseRequestModule } from '@/modules/purchase-request.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SeedController } from '@/controllers/seed.controller';
+import { AiController } from '@/controllers/ai.controller';
 import { SeedService } from '@/services/seed.service';
 import { User } from '@/entities/user.entity';
 import { Product } from '@/entities/product.entity';
@@ -19,6 +20,7 @@ import { Message } from '@/entities/message.entity';
 import { Rating } from '@/entities/rating.entity';
 import { Report } from '@/entities/report.entity';
 import { PurchaseRequest } from '@/entities/purchase-request.entity';
+import { AiService } from '@/services/ai.service';
 
 @Module({
   imports: [
@@ -72,7 +74,7 @@ import { PurchaseRequest } from '@/entities/purchase-request.entity';
     ReportModule,
     PurchaseRequestModule,
   ],
-  controllers: [AppController, SeedController],
-  providers: [AppService, SeedService],
+  controllers: [AppController, SeedController, AiController],
+  providers: [AppService, SeedService, AiService],
 })
 export class AppModule {}

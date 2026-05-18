@@ -28,6 +28,7 @@ const ALLOWED_CONDITIONS = ['Nuevo', 'Poco usado', 'Usado'];
 export class AiService {
   private readonly logger = new Logger(AiService.name);
   private readonly enabled = !!process.env.GEMINI_API_KEY;
+  private modelCache: { lastChecked: number; models: string[] } | null = null;
 
   constructor() {
     if (!this.enabled) {
@@ -170,8 +171,10 @@ Hints:
 - category: ${category || ''}
 - condition: ${condition || ''}`;
 
+      const model = await this.selectModelFor('text');
+      const modelEndpoint = model ? `https://generativelanguage.googleapis.com/v1/${model}:generateContent` : `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent`;
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `${modelEndpoint}?key=${process.env.GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -253,8 +256,10 @@ Rules:
 - Do not return price.
 - If the image is blurry or unclear, still make a best effort.`;
 
+      const model = await this.selectModelFor('vision');
+      const endpointModel = model || 'models/gemini-1.5-flash';
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/${endpointModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -342,8 +347,10 @@ Hints:
 - category: ${hints?.category || ''}
 - condition: ${hints?.condition || ''}`;
 
+      const model = await this.selectModelFor('vision');
+      const modelEndpoint = model ? `https://generativelanguage.googleapis.com/v1/${model}:generateContent` : `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent`;
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `${modelEndpoint}?key=${process.env.GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -400,6 +407,54 @@ Hints:
         this.logger.warn('analyzeProductImage fallback also failed, returning heuristic analysis', inner as any);
         return this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition);
       }
+    }
+  }
+
+  // List available models and pick one suitable for the task. Cache results briefly.
+  async listModels(): Promise<string[]> {
+    try {
+      if (this.modelCache && Date.now() - this.modelCache.lastChecked < 1000 * 60 * 5) {
+        return this.modelCache.models;
+      }
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${process.env.GEMINI_API_KEY}`);
+      if (!res.ok) {
+        this.logger.warn('ListModels request failed, status ' + res.status);
+        return [];
+      }
+      const payload = await res.json();
+      const models: string[] = Array.isArray(payload?.models) ? payload.models.map((m: any) => m.name).filter(Boolean) : [];
+      this.modelCache = { lastChecked: Date.now(), models };
+      return models;
+    } catch (err) {
+      this.logger.warn('listModels error', err as any);
+      return [];
+    }
+  }
+
+  async selectModelFor(kind: 'vision' | 'text'): Promise<string | null> {
+    if (!this.enabled) return null;
+    try {
+      const models = await this.listModels();
+      if (!models.length) return null;
+
+      // prefer explicit vision-capable models when asked
+      if (kind === 'vision') {
+        const vision = models.find((m) => /vision|image|img|flash/i.test(m));
+        if (vision) return vision;
+        // fallback to any gemini model
+        const gem = models.find((m) => /gemini/i.test(m));
+        if (gem) return gem;
+      }
+
+      // text preference
+      const preferredText = models.find((m) => /gemini(-pro|-1\.5|1\.5|-1\.|-text)?/i.test(m));
+      if (preferredText) return preferredText;
+
+      return models[0] || null;
+    } catch (err) {
+      this.logger.warn('selectModelFor error', err as any);
+      return null;
     }
   }
 }
