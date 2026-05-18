@@ -171,7 +171,7 @@ Hints:
 - condition: ${condition || ''}`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -191,7 +191,8 @@ Hints:
       );
 
       if (!response.ok) {
-        throw new Error(`Gemini request failed with ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`Gemini request failed with ${response.status}: ${errorText}`);
       }
 
       const payload = await response.json();
@@ -344,7 +345,7 @@ Hints:
 - condition: ${hints?.condition || ''}`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -372,7 +373,8 @@ Hints:
       );
 
       if (!response.ok) {
-        throw new Error(`Gemini analysis request failed with ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`Gemini analysis request failed with ${response.status}: ${errorText}`);
       }
 
       const payload = await response.json();

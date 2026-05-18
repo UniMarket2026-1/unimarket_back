@@ -53,7 +53,18 @@ export class ChatService {
       await this.chatRepository.save(chat);
     }
 
-    return this.formatChat(chat);
+    return {
+      id: chat.id,
+      productId: chat.productId,
+      productName: chat.product?.name || 'Product',
+      buyerId: chat.buyerId,
+      sellerId: chat.sellerId,
+      otherPartyName: chat.seller?.name || 'Unknown',
+      otherPartyProfileImageUrl: chat.seller?.profileImageUrl || undefined,
+      lastMessage: chat.lastMessage,
+      lastMessageAt: chat.lastMessageAt,
+      createdAt: chat.createdAt,
+    };
   }
 
   async getUserChats(userId: string) {
@@ -66,7 +77,22 @@ export class ChatService {
       order: { lastMessageAt: 'DESC' },
     });
 
-    return chats.map(chat => this.formatChat(chat));
+    return chats.map(chat => {
+      const isBuyer = chat.buyerId === userId;
+      const otherParty = isBuyer ? chat.seller : chat.buyer;
+      return {
+        id: chat.id,
+        productId: chat.productId,
+        productName: chat.product?.name || 'Product',
+        buyerId: chat.buyerId,
+        sellerId: chat.sellerId,
+        otherPartyName: otherParty?.name || 'Unknown',
+        otherPartyProfileImageUrl: otherParty?.profileImageUrl || undefined,
+        lastMessage: chat.lastMessage,
+        lastMessageAt: chat.lastMessageAt,
+        createdAt: chat.createdAt,
+      };
+    });
   }
 
   async getChatMessages(chatId: string) {

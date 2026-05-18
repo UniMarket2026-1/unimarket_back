@@ -111,6 +111,8 @@ export class UserService {
       favorites: user.favorites || [],
       interests: user.interests || [],
       notificationsEnabled: user.notificationsEnabled,
+      description: user.description || '',
+      profileImageUrl: user.profileImageUrl || '',
       totalRating: user.totalRating,
       ratingCount: user.ratingCount,
       suspended: user.suspended,

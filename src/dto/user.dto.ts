@@ -36,6 +36,14 @@ export class UpdateUserDto {
 
   @IsOptional()
   notificationsEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  profileImageUrl?: string;
 }
 
 export class VerifyEmailCodeDto {
@@ -54,6 +62,8 @@ export class UserResponseDto {
   favorites: string[];
   interests: string[];
   notificationsEnabled: boolean;
+  description?: string;
+  profileImageUrl?: string;
   totalRating: number;
   ratingCount: number;
   suspended: boolean;

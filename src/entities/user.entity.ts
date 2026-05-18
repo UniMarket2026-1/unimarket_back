@@ -61,6 +61,12 @@ export class User {
   @Column({ default: 0 })
   warnings: number;
 
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  @Column({ nullable: true })
+  profileImageUrl: string;
+
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
