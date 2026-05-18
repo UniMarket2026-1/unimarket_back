@@ -385,7 +385,21 @@ Hints:
       return this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition);
     } catch (error) {
       this.logger.error('analyzeProductImage error', error as any);
-      return this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition);
+
+      // If the model is not available (404) try a graceful fallback using the image-only analysis
+      // which uses a different model/endpoint. This avoids breaking the feature when a specific
+      // vision model is not exposed on the account/API version.
+      try {
+        const imgAnalysis = await this.analyzeImage(imageData);
+        const inferredName = (hints?.productName && hints.productName.trim()) || imgAnalysis.detectedItems?.[0] || undefined;
+        const inferredCategory = imgAnalysis.suggestedCategory;
+        const inferredCondition = imgAnalysis.quality === 'excellent' ? 'Nuevo' : imgAnalysis.quality === 'good' ? 'Poco usado' : 'Usado';
+
+        return this.getFallbackAnalysis(inferredName, inferredCategory, inferredCondition);
+      } catch (inner) {
+        this.logger.warn('analyzeProductImage fallback also failed, returning heuristic analysis', inner as any);
+        return this.getFallbackAnalysis(hints?.productName, hints?.category, hints?.condition);
+      }
     }
   }
 }
