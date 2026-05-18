@@ -36,6 +36,7 @@ export class SeedService {
       interests: ['Libros', 'Tecnología'],
       totalRating: 5.0,
       ratingCount: 0,
+      profileImageUrl: 'https://i.pravatar.cc/150?u=admin@unimarket.edu',
     });
 
     // Create test users
@@ -61,6 +62,7 @@ export class SeedService {
         interests: ['Libros', 'Tecnología', 'Muebles'],
         totalRating: Math.random() * 5,
         ratingCount: Math.floor(Math.random() * 20),
+        profileImageUrl: `https://i.pravatar.cc/150?u=${data.email}`,
       });
       users.push(user);
     }

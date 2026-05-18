@@ -209,6 +209,7 @@ export class ProductService {
       sellerId: product.sellerId,
       sellerName: product.seller?.name || 'Unknown',
       sellerEmail: product.seller?.email || '',
+      sellerProfileImageUrl: product.seller?.profileImageUrl || '',
       sellerRating: Math.round(avgRating * 10) / 10,
       sellerVerified: !!product.seller?.emailVerified,
       sellerUniandesVerified:

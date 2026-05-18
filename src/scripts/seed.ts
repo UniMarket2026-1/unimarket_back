@@ -22,6 +22,7 @@ async function seed() {
     notificationsEnabled: true,
     totalRating: 5.0,
     ratingCount: 0,
+    profileImageUrl: 'https://i.pravatar.cc/150?u=admin@unimarket.edu',
   });
   await userRepository.save(admin);
 
@@ -52,6 +53,7 @@ async function seed() {
       interests: ['Libros', 'Tecnología', 'Muebles'],
       totalRating: Math.random() * 5,
       ratingCount: Math.floor(Math.random() * 20),
+      profileImageUrl: `https://i.pravatar.cc/150?u=${data.email}`,
     });
     students.push(student);
   }
